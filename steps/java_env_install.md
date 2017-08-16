@@ -1,7 +1,7 @@
 # Java開発環境作成。
 
 Javaの開発環境作成手順を以下に示す。  
-SFネットワークPCで実行すること。  
+対象はWindows7以降。  
 
 [springbootのスケルトン作成](springboot_practice.md) は別途。
 
