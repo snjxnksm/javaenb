@@ -1,0 +1,28 @@
+spring:
+  profiles:
+    active: "local"
+  jpa:
+    database: postgresql
+    hibernate:
+      ddl-auto: none # noneは、何もしない。
+#      ddl-auto: update # uodate は、起動するたびにEntityの状態をDBに反映する
+  datasource:
+#    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://localhost:5432/practicedb
+    username: postgres
+    password: Postgres1234
+    driverClassName: org.postgresql.Driver
+  data:
+    rest:
+      basePath: /api
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+security:
+  basic:
+    enabled: false
+    
+# 以降はシステム固有の設定
+settings:
+  # エラー時のリダイレクト先。仮の値
+  errorRedirectTarget: http://localhost:8080/errorpage.html

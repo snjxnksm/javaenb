@@ -1,0 +1,37 @@
+[
+	{
+		"taskGroup": "タスクグループ",
+		"taskName": "タスク１",
+		"isPlanned": true,
+		"jobCode": "JOB0011",
+		"jobName": "JOB名"
+	},
+	{
+		"taskGroup": "タスクグループ",
+		"taskName": "タスク２",
+		"isPlanned": true,
+		"jobCode": "JOB0002",
+		"jobName": "JOB名"
+	},
+	{
+		"taskGroup": "タスクグループ",
+		"taskName": "タスク３",
+		"isPlanned": false,
+		"jobCode": "JOB0003",
+		"jobName": "JOB名"
+	},
+	{
+		"taskGroup": "タスクグループ",
+		"taskName": "タスク４",
+		"isPlanned": true,
+		"jobCode": "JOB0004",
+		"jobName": "JOB名"
+	},
+	{
+		"taskGroup": "タスクグループ",
+		"taskName": "タスク５",
+		"isPlanned": true,
+		"jobCode": "JOB0005",
+		"jobName": "JOB名"
+	}
+]

@@ -1,0 +1,9 @@
+[
+	{
+		"taskGroup": "タスクグループ",
+		"taskName": "タスク１",
+		"workAmt": 1,
+		"toOffer": true,
+		"reason": "理由"
+	}
+]

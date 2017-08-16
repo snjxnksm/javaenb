@@ -1,0 +1,16 @@
+{
+    "list": [
+        {
+            "modelId": "MDL0001",
+            "modelName": "標準モデルＡ"
+        },
+        {
+            "modelId": "MDL0002",
+            "modelName": "標準モデルＢ"
+        },
+        {
+            "modelId": "MDL0003",
+            "modelName": "標準モデルＣ"
+        }
+    ]
+}

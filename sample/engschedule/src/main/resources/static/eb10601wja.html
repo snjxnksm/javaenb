@@ -1,0 +1,1249 @@
+﻿<!doctype html>
+<html lang="ja">
+    <head>
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+<!--         <link rel="stylesheet" href="css/bootstrap-select.min.css"> -->
+        <link rel="stylesheet" href="css/es_style.css">
+        <link rel="stylesheet" href="css/joint.min.css">
+        <link rel="stylesheet" href="css/main.css">
+
+        <!-- jQuery first, then Tether, then Bootstrap JS. -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src="http://fb.me/react-0.13.3.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <script src="http://fb.me/JSXTransformer-0.13.3.js"></script>
+        <script src="./js/lodash.js"></script>
+        <script src="./js/backbone.js"></script>
+        <script src="./js/joint.min.js"></script>
+        <script src="./js/main.js"></script>
+        <script src="./js/es_common.js"></script>
+        <script src="./js/errormsg_const.js"></script>
+
+
+        <style type="text/css">
+.table-fixed thead {
+  width: 98.5%;
+}
+.table-fixed tbody {
+  height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+.table-fixed thead, .table-fixed tbody, .table-fixed tr, .table-fixed td, .table-fixed th {
+  display: block;
+}
+.table-fixed tbody td, .table-fixed thead > tr> th {
+  float: left;
+  border-bottom-width: 0;
+}
+
+.table-books-fixed thead {
+  width: 68.5%;
+}
+.table-books-fixed tbody {
+  height: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 70%;
+}
+.table-books-fixed thead, .table-books-fixed tbody, .table-books-fixed tr, .table-books-fixed td, .table-books-fixed th {
+  display: block;
+}
+.table-books-fixed tbody td, .table-books-fixed thead > tr> th {
+  float: left;
+  border-bottom-width: 0;
+}
+.overfor_ecllipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-books2-fixed thead {
+  width: 78.5%;
+}
+.table-books2-fixed tbody {
+  height: 60px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 80%;
+}
+.table-books2-fixed thead, .table-books2-fixed tbody, .table-books2-fixed tr, .table-books2-fixed td, .table-books2-fixed th {
+  display: block;
+}
+.table-books2-fixed tbody td, .table-books2-fixed thead > tr> th {
+  float: left;
+  border-bottom-width: 0;
+}
+.overfor_ecllipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+div.input-group {
+    margin-bottom: 5px;
+}
+.day_Text {
+    width: 30px;
+}
+.date_Text {
+    width: 80px;
+}
+        </style>
+
+        <script type="text/jsx">
+
+var revice_type
+
+
+var Main = React.createClass({
+  getInitialState: function() {
+      return {
+              task          :{},
+              works         :[{}],
+              books         :[{}],
+              booksOther    :[{}],
+              taskGroupList :[{}],
+              resource      :[{}],
+              reporter      :[{}],
+              workCount     :0,
+              bookCount     :0,
+              otherCount    :0
+      }
+  },
+
+  componentWillMount: function() {
+    console.debug("Main");
+  },
+
+  componentDidMount: function() {
+    var urlParams = getUrlParams();
+
+    new ReactAjax("./testData/task_work.json")
+      .setRequest({
+//        jobCd: urlParams.jobcd,
+//        exeTaskCd: urlParams.exeTaskCd,
+//        scheduleCreSts: urlParams.scheduleCreSts,
+//        revisionNo: urlParams.revisionNo,
+//        displayId: urlParams.displayId,
+      })
+      .get(function(response) {
+        this.setState({task          : response.result.task});
+        this.setState({works         : response.result.works});
+        this.setState({books         : response.result.books});
+        this.setState({booksOther    : response.result.booksOther});
+        this.setState({taskGroupList : response.result.taskGroupList});
+        this.setState({resource      : response.result.resource});
+        this.setState({reporter      : response.result.reporter});
+      }
+      .bind(this))
+      .doAjax();
+  },
+
+  // タスク情報変更イベント
+  handleTaskChange: function(task) {
+console.debug("タスク情報変更");
+    this.state.Task = task;
+    this.setState(this.state.task);
+  },
+
+  // ワーク情報変更イベント
+//  handleWorkChange: function(work,key) {
+//console.debug("ワーク情報変更");
+//    this.state.taskInfo.works[key-1] = work;
+//    this.setState(this.state.taskInfo.works);
+//  },
+
+  // ワーク情報追加
+  handleAddWork: function() {
+    this.setState({workCount: this.state.workCount +1});
+    var workData = {
+            "id":"",
+            "exeWorkCd":                "AAAA" + this.state.workCount,
+            "basisStdWorkCd":           "",
+            "exeWorkNm":                "ワーク名",
+            "exeWorkSts":               "A",
+            "internalOutsourceFlg":     true,
+            "volumeDependencyFlg":      "0",
+            "daysCalCoefficient":       "0",
+            "mhCalCoefficient":         "0",
+            "initWorkDays":             "0",
+            "initWorkMh":               "0",
+            "editWorkDays":             "0",
+            "editWorkMh":               "0",
+            "plnWorkStartedOn":         "",
+            "plnWorkEndedOn":           "",
+            "milestoneSettedOn":        "",
+            "plnWorkResourceCd":        "",
+            "plnWorkReporterCd":        "",
+            "reviceType":               "A",
+            "reviceRsn":                "ワークを追加しました",
+            "plnWorkCoordinateX":       "20",
+            "plnWorkCoordinateY":       "20"
+    };
+    this.state.works = this.state.works;
+    this.state.works.push(workData);
+    this.setState({works: this.state.works });
+  },
+
+
+  // 作成物（図書）行追加
+  handleAddBook: function() {
+    this.setState({bookCount: this.state.bookCount +1});
+    var bookData = {
+            "id"              :"",
+            "inhDocNo"        :"",
+            "actDeliverableCd":"AAAA" + this.state.bookCount,
+            "actDeliverableNm":"作成物名",
+            "reviceType"      :false,
+            "reviceRsn"       :"作成物の追加",
+            "edmsManagedFlg"  :false,
+            "pmsManagedFlg"   :false
+    };
+    this.state.books = this.state.books;
+    this.state.books.push(bookData);
+    this.setState({books: this.state.books});
+  },
+
+
+
+  // 作成物（図書以外）行追加
+  handleAddOther: function() {
+    this.setState({otherCount: this.state.otherCount +1});
+    var otherData = {
+            "id"              :"",
+            "inhDocNo"        :"AAAA" + this.state.otherCount,
+            "actDeliverableCd":"",
+            "actDeliverableNm":"作成物名",
+            "reviceType"      :false,
+            "reviceRsn"       :"作成物の追加",
+            "edmsManagedFlg"  :false,
+            "pmsManagedFlg"   :false
+    };
+    this.state.booksOther = this.state.booksOther;
+    this.state.booksOther.push(otherData);
+    this.setState({booksOther: this.state.booksOther});
+  },
+
+
+
+
+  render: function() {
+
+//console.debug("MainRender");
+//console.debug(this.state.taskInfo.works);
+//console.debug(this.state.taskInfo.resource);
+//console.debug(this.state.taskInfo.reporter);
+//console.debug("works");
+
+    return (
+    <div className="row"><br />
+        <TaskInfo ref="tasks" task={this.state.task} handleTaskChange={this.handleTaskChange} taskGroups={this.state.taskGroupList} />
+        <br />
+
+        <div className="row">
+            <div className="col-xs-2">ワーク情報</div><div className="col-xs-1">
+                <button type="button" className="btn btn-xs" onClick={this.handleAddWork}>ワーク行追加</button>
+            </div>
+        </div>
+
+        <WorkInfo works={this.state.works} resources={this.state.resource} reporters={this.state.reporter} />
+        <a data-toggle="collapse" href="#acc1"><b>(＋)成果物一覧</b></a>
+        <br />
+        <br />
+        <div className="collapse" id="acc1">
+            <div className="row">
+                <div className="col-xs-2">成果物（図書）</div><div className="col-xs-1"><button type="button" className="btn btn-xs" onClick={this.handleAddBook}>成果物（図書）行追加</button></div>
+            </div>
+            <BooksInfo books={this.state.books} />
+            <div className="row">
+                <div className="col-xs-2">成果物（図書以外）</div><div className="col-xs-1"><button type="button" className="btn btn-xs" onClick={this.handleAddOther}>成果物（図書以外）行追加</button></div>
+            </div>
+            <BookOthersInfo booksOther={this.state.booksOther} />
+        </div>
+    </div>
+    );
+  }
+});
+
+// タスク情報
+var TaskInfo = React.createClass({
+  getInitialState: function() {
+    return {task: {}
+    };
+  },
+
+  propTypes: {
+    task: React.PropTypes.shape({
+      jobCd: React.PropTypes.string.isRequired,
+      taskGrpCd: React.PropTypes.string.isRequired,
+      exeTaskCd: React.PropTypes.string.isRequired,
+      exeTaskNm: React.PropTypes.string.isRequired,
+      basisStdTaskCd: React.PropTypes.string.isRequired,
+      deliverableVolume: React.PropTypes.string.isRequired,
+      exeTaskSts: React.PropTypes.string.isRequired,
+      revisionNo: React.PropTypes.string,
+      scheduleFixedFlg: React.PropTypes.string.isRequired,
+      scheduleCreSts: React.PropTypes.string.isRequired,
+      lockVersion: React.PropTypes.string.isRequired,
+      reviceRsn: React.PropTypes.string.isRequired
+    })
+  },
+  expantionFlag: ["target", "excluded"],
+
+  componentWillMount: function() {
+    console.debug("TaskInfo");
+  },
+
+  getInitialState: function() {
+    return {dayFixed : this.expantionFlag[0]};
+  },
+
+  // 日程展開変更イベント
+  handleChangeExpantionFlag: function(e) {
+//    this.setState({dayFixed: e.currentTarget.value});
+    this.state.task = this.props.task;
+    if (e.currentTarget.value == "target" ) {
+        this.state.task.scheduleFixedFlg = "0";
+    }
+    else {
+        this.state.task.scheduleFixedFlg = "1";
+    }
+    this.props.handleTaskChange(this.state.task);
+  },
+
+  // タスクグループ変更イベント
+  handleTaskGroupChange: function(taskGrpCd) {
+    this.state.task = this.props.task;
+    this.state.task.taskGrpCd = taskGrpCd;
+    this.props.handleTaskChange(this.state.task);
+  },
+
+  // タスク名変更イベント
+  handleChangeExeTaskNm: function(e) {
+    this.state.task = this.props.task;
+    this.state.task.exeTaskNm = e.target.value;
+    this.props.handleTaskChange(this.state.task);
+  },
+
+  // タスク名フォーカスアウトイベント
+  handleFocusExeTaskNm: function(e) {
+    this.state.task = this.props.task;
+    this.state.task.exeTaskNm = e.target.value;
+    this.props.handleTaskChange(this.state.task);
+  },
+
+  // タスク名フォーカスイベント
+  handleBlurExeTaskNm: function(e) {
+    this.state.task = this.props.task;
+    this.state.task.exeTaskNm = e.target.value;
+    this.props.handleTaskChange(this.state.task);
+  },
+
+
+  // タスク追加理由変更イベント
+  handleChangeReviceRsn: function(e) {
+    this.state.task = this.props.task;
+    this.state.task.reviceRsn = e.target.value;
+    this.props.handleTaskChange(this.state.task);
+  },
+
+  // タスク追加理由フォーカスアウトイベント
+  handleFocusReviceRsnm: function(e) {
+    this.state.task = this.props.task;
+    this.state.task.reviceRsn = e.target.value;
+    this.props.handleTaskChange(this.state.task);
+  },
+
+  // タスク追加理由フォーカスイベント
+  handleBlurReviceRsn: function(e) {
+    this.state.task = this.props.task;
+    this.state.task.reviceRsn = e.target.value;
+    this.props.handleTaskChange(this.state.task);
+  },
+
+
+  render: function() {
+    console.debug("TaskInfoRender");
+    var scheduleFixed;
+    if (this.props.task.scheduleFixedFlg == "0") {
+        scheduleFixed = "target";
+    }
+    else {
+        scheduleFixed = "excluded"
+    }
+
+    return (
+        <div className="row taskRow" id={this.props.task.exeTaskCd}>
+            <div className="col-xs-6">
+                <div className="row">
+                    <div className="col-sm-6 col-md-6 col-xs-6">
+                        <div className="input-group">
+                            <span className="input-group-addon">タスクグループ</span>
+                            <TaskGroupList ref="taskGroupList" taskGrpCd={this.props.task.taskGrpCd} taskGroup={this.props.taskGroups} onTaskGropChange={this.handleTaskGroupChange} />
+                        </div>
+                    </div>
+                    <div className="col-sm-6 col-md-6 col-xs-6">
+                        <div className="input-group">
+                            <span className="input-group-addon">タスク名</span>
+                            <input type="text" className="form-control" id="exeTaskNm" value={this.props.task.exeTaskNm}
+                                onChange={this.handleChangeExeTaskNm}
+                                onFocus={this.handleFocusExeTaskNm}
+                                onBlur={this.handleBlurExeTaskNm}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-sm-12 col-md-12 col-xs-12">
+                        <div className="input-group">
+                            <span className="input-group-addon">タスク追加理由</span>
+                            <input type="text" className="form-control" id="reviceRsn" value={this.props.task.reviceRsn}
+                                onChange={this.handleChangeReviceRsn}
+                                onFocus={this.handleFocusReviceRsn}
+                                onBlur={this.handleBlurReviceRsn}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="col-xs-3">
+                <div className="row">
+                    <div className="col-sm-12 col-md-12 col-xs-12">
+                        <div className="input-group">
+                            <span className="input-group-addon">成果物作成量</span>
+                            <span className="input-group-addon">{this.props.task.deliverableVolume}</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-sm-12 col-md-12 col-xs-12">
+                        <div className="input-group">
+                            <span className="input-group-addon">日程展開</span>
+                            <span className="input-group-addon">　
+                                <input type="radio" id="schedule_fixed_target" name="scheduleFixed" value={this.expantionFlag[0]}
+                                  checked={scheduleFixed === this.expantionFlag[0]} onChange={this.handleChangeExpantionFlag} />対象
+                                <input type="radio" id="schedule_fixed_excluded" name="scheduleFixed" value={this.expantionFlag[1]}
+                                  checked={scheduleFixed === this.expantionFlag[1]} onChange={this.handleChangeExpantionFlag} />対象外
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="col-xs-3">
+                <div className="col-xs-6">
+                    <button type="submit" id="btn_cancel" className="btn btn-default btn-block mb20">キャンセル</button>
+                </div>
+                <div className="col-xs-6">
+                    <button type="submit" id="btn_save"   className="btn btn-default btn-block">確定</button>
+                </div>
+            </div>
+            <input type="hidden" name="basisStdTaskCd" value={this.props.task.basisStdTaskCd} />
+            <input type="hidden" name="exeTaskSts" value={this.props.task.exeTaskSts} />
+            <input type="hidden" name="revisionNo" value={this.props.task.revisionNo} />
+            <input type="hidden" name="scheduleCreSts" value={this.props.task.scheduleCreSts} />
+            <input type="hidden" name="lockVersion" value={this.props.task.lockVersion} />
+        </div>
+    );
+  }
+});
+
+// タスクグループ
+var TaskGroupList = React.createClass({
+//  getInitialData: function() {
+//    return {taskGroup: []};
+//  },
+  componentWillMount: function() {
+    console.debug("TaskGroupList");
+  },
+  handleChange: function(e) {
+//    this.setState({taskGrpCd: $(e.currentTarget).val()});
+    this.props.onTaskGropChange($(e.currentTarget).val());
+  },
+  render: function() {
+    var options = this.props.taskGroup.map(function(record) {
+      return <TaskGroupRow record={record} />
+    });
+    return <select id="taskgroup" className="form-control" onChange={this.handleChange} value={this.props.taskGrpCd}>{options}</select>
+  }
+});
+
+// オプション
+var TaskGroupRow = React.createClass({
+  componentWillMount: function() {
+    console.debug("TaskGroupRow");
+  },
+  render: function() {
+    return <option value={this.props.record.taskGrpCd}>{this.props.record.taskGrpNm}</option>
+  }
+});
+
+// ワーク情報
+var WorkInfo = React.createClass({
+  getInitialState: function() {
+    return {works: [],
+            count:0
+           };
+  },
+
+  componentWillMount: function() {
+    console.debug("WorkInfo");
+  },
+  handleWorkChange: function(work,key) {
+    this.props.handleWorkChange(work,key);
+  },
+
+
+  render: function() {
+    var workList = this.props.works.map(function(work) {
+      return <WorkInfoRow work={work} handleWorkChange={this.handleWorkChange} resource={this.props.resources} reporter={this.props.reporters} key={work.exeWorkCd} />
+    }.bind(this));
+
+    return (
+        <div className="text-center">
+            <table className="table es_list" style={{width:"95%"}}>
+                <thead>
+                    <tr>
+                        <th style={{width:"25%"}} className="text-center">ワーク名            </th>
+                        <th style={{width:"5%" }} className="text-center">内製                </th>
+                        <th style={{width:"5%" }} className="text-center">作成量依存          </th>
+                        <th style={{width:"15%"}} className="text-center">
+                            <div className="row text-center">
+                                <div className="col-xs-12">期間(上)/ＭＨ(下)</div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-4 text-center">係数</div>
+                                <div className="col-xs-4 text-center">標準</div>
+                                <div className="col-xs-4 text-center">実施</div>
+                            </div>
+                        </th>
+                        <th style={{width:"50px" }} className="text-center">予定開始日          </th>
+                        <th style={{width:"50px" }} className="text-center">予定終了日          </th>
+                        <th style={{width:"7%" }} className="text-center">マイルストーン予定日</th>
+                        <th style={{width:"10%"}} className="text-center">
+                            <div className="row">リソース</div>
+                            <div className="row">レポーター</div>
+                        </th>
+                        <th style={{width:"5%" }} className="text-center">削除                </th>
+                        <th style={{width:"14%"}} className="text-center">改定理由            </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {workList}
+                </tbody>
+            </table>
+        </div>
+    );
+  }
+});
+
+// ワーク一覧
+var WorkInfoRow = React.createClass({
+  getInitialState: function() {
+    return {
+        work: {
+            id:                     this.props.work.id,
+            exeWorkCd:              this.props.work.exeWorkCd,
+            basisStdWorkCd:         this.props.work.basisStdWorkCd,
+            exeWorkNm:              this.props.work.exeWorkNm,
+            exeWorkSts:             this.props.work.exeWorkSts,
+            internalOutsourceFlg:   this.props.work.internalOutsourceFlg,
+            volumeDependencyFlg:    this.props.work.volumeDependencyFlg,
+            daysCalCoefficient:     this.props.work.daysCalCoefficient,
+            mhCalCoefficient:       this.props.work.mhCalCoefficient,
+            initWorkDays:           this.props.work.initWorkDays,
+            initWorkMh:             this.props.work.initWorkMh,
+            editWorkDays:           this.props.work.editWorkDays,
+            editWorkMh:             this.props.work.editWorkMh,
+            plnWorkStartedOn:       this.props.work.plnWorkStartedOn,
+            plnWorkEndedOn:         this.props.work.plnWorkEndedOn,
+            milestoneSettedOn:      this.props.work.milestoneSettedOn,
+            plnWorkResourceCd:      this.props.work.plnWorkResourceCd,
+            plnWorkReporterCd:      this.props.work.plnWorkReporterCd,
+            reviceType:             this.props.work.reviceType,
+            reviceRsn:              this.props.work.reviceRsn,
+            plnWorkCoordinateX:     this.props.work.plnWorkCoordinateX,
+            plnWorkCoordinateY:     this.props.work.plnWorkCoordinateY
+        }
+    };
+  },
+  componentWillMount: function() {
+    console.debug("WorkInfoRow");
+  },
+  // リソースチェンジイベント
+  handleResourceChange: function(plnWorkResourceCd, key) {
+    this.state.work.plnWorkResourceCd = plnWorkResourceCd;
+    this.setState(this.state.work);
+//    this.props.handleWorkChange(this.state.work, key);
+  },
+  // レポーターチェンジイベント
+  handleReporterChange: function(plnWorkReporterCd, key) {
+    this.state.work.plnWorkReporterCd = plnWorkReporterCd;
+    this.setState(this.state.work);
+//    this.props.handleWorkChange(this.state.work, key);
+  },
+
+  // 期間（実施）変更イベント
+  handleChangeEditWorkDays: function(e) {
+    this.state.work.editWorkDays = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 期間（実施）フォーカスイベント
+  handleFocusEditWorkDays: function(e) {
+    this.state.work.editWorkDays = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 期間（実施）フォーカスアウトイベント
+  handleBlurEditWorkDays: function(e) {
+    this.state.work.editWorkDays = e.target.value;
+    this.setState(this.state.work);
+  },
+
+  // MH（実施）変更イベント
+  handleChangeEditWorkMh: function(e) {
+    this.state.work.editWorkMh = e.target.value;
+    this.setState(this.state.work);
+  },
+  // MH（実施）フォーカスイベント
+  handleFocusEditWorkMh: function(e) {
+    this.state.work.editWorkMh = e.target.value;
+    this.setState(this.state.work);
+  },
+  // MH（実施）フォーカスアウトイベント
+  handleBlurEditWorkMh: function(e) {
+    this.state.work.editWorkMh = e.target.value;
+    this.setState(this.state.work);
+  },
+
+
+  // 予定開始日変更イベント
+  handleChangePlnWorkStartedOn: function(e) {
+    this.state.work.plnWorkStartedOn = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 予定開始日フォーカスイベント
+  handleFocusPlnWorkStartedOn: function(e) {
+    this.state.work.plnWorkStartedOn = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 予定開始日フォーカスアウトイベント
+  handleBlurPlnWorkStartedOn: function(e) {
+    this.state.work.plnWorkStartedOn = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 予定終了日変更イベント
+  handleChangePlnWorkEndedOn: function(e) {
+    this.state.work.plnWorkEndedOn = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 予定終了日フォーカスイベント
+  handleFocusPlnWorkEndedOn: function(e) {
+    this.state.work.plnWorkEndedOn = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 予定終了日フォーカスアウトイベント
+  handleBlurPlnWorkEndedOn: function(e) {
+    this.state.work.plnWorkEndedOn = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 改訂理由変更イベント
+  handleChangeReviceRsn: function(e) {
+    this.state.work.reviceRsn = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 改訂理由フォーカスイベント
+  handleFocusReviceRsn: function(e) {
+    this.state.work.reviceRsn = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 改訂理由フォーカスアウトイベント
+  handleBlurReviceRsn: function(e) {
+    this.state.work.reviceRsn = e.target.value;
+    this.setState(this.state.work);
+  },
+  // 改定区分変更イベント
+  handleChangeReviceType: function(e) {
+    this.state.work.reviceType = e.target.checked;
+    this.setState(this.state.work);
+  },
+  // 内製外注変更イベント
+  handleChangeInternalOutsourceFlg: function(e) {
+    this.state.work.internalOutsourceFlg = e.target.checked;
+    this.setState(this.state.work);
+  },
+  render: function() {
+    var volumeDependency;
+    if (this.state.work.volumeDependencyFlg == "1" ){
+        volumeDependency = "Yes";
+    }
+    else{
+        volumeDependency = "No";
+    }
+    return (
+        <tr className="workRow" id={this.props.work.exeWorkCd}>
+            <td style={{width:"25%"}} className="overfor_ecllipsis"            >{this.state.work.exeWorkNm}</td>
+            <td syle={{width:"5%" }}  className="overfor_ecllipsis text-center">
+                <input type="checkbox" name="internalOutsourceFlg" checked={this.state.work.internalOutsourceFlg}  value={this.state.work.internalOutsourceFlg}
+                    onChange={this.handleChangeInternalOutsourceFlg} />
+            </td>
+            <td style={{width:"5%" }} className="overfor_ecllipsis text-center">{volumeDependency}</td>
+            <td style={{width:"15%"}} className="text-center"                  >
+                <div className="row">
+                    <div className="col-xs-4 text-right">
+                        {this.state.work.daysCalCoefficient}
+                    </div>
+                    <div className="col-xs-4 text-right">
+                        {this.state.work.initWorkDays}
+                    </div>
+                    <div className="col-xs-4 text-right">
+                        <input type="text" name="editWorkDays" value={this.state.work.editWorkDays}     className="day_Text"
+                            onChange={this.handleChangeEditWorkDays}
+                            onFocus={this.handleFocusEditWorkDays}
+                            onBlur={this.handleBlurEditWorkDays}
+                        />
+                    </div>
+                </div>
+                <div className="row">
+                     <div className="col-xs-4 text-right">
+                        {this.state.work.mhCalCoefficient}
+                    </div>
+                    <div className="col-xs-4 text-right">
+                        {this.state.work.initWorkMh}
+                     </div>
+                    <div className="col-xs-4 text-right">
+                        <input type="text" name="editWorkMh"   value={this.state.work.editWorkMh}       className="day_Text"
+                            onChange={this.handleChangeEditWorkMh}
+                            onFocus={this.handleFocusEditWorkMh}
+                            onBlur={this.handleBlurEditWorkMh}
+                        />
+                    </div>
+                </div>
+            </td>
+            <td style={{width:"50px" }} className="text-center"                >
+                <input type="text" name="plnWorkStartedOn"     value={this.state.work.plnWorkStartedOn} className="date_Text"
+                    onChange={this.handleChangePlnWorkStartedOn}
+                    onFocus ={this.handleFocusPlnWorkStartedOn}
+                    onBlur  ={this.handleBlurPlnWorkStartedOn}
+                />
+            </td>
+            <td style={{width:"50px" }} className="text-center"                >
+                <input tyep="text" name="plnWorkEndedOn"       value={this.state.work.plnWorkEndedOn}   className="date_Text"
+                    onChange={this.handleChangePlnWorkEndedOn}
+                    onFocus ={this.handleFocusPlnWorkEndedOn}
+                    onBlur  ={this.handleBlurPlnWorkEndedOn}
+                />
+            </td>
+            <td style={{width:"7%" }} className="text-center"                  >{this.state.work.milestoneSettedOn}</td>
+            <td style={{width:"10%"}}                                          >
+                <div className="row">
+                    <div className="col-xs-12 text-right">
+                        <ResourceList resource={this.props.resource} workKey={this.state.work.id} plnWorkResourceCd={this.state.work.plnWorkResourceCd} onResourceChange={this.handleResourceChange} />
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-xs-12 text-right">
+                        <ReporterList reporter={this.props.reporter} workKey={this.state.work.id} plnWorkReporterCd={this.state.work.plnWorkReporterCd} onReporterChange={this.handleReporterChange} />
+                    </div>
+                </div>
+            </td>
+            <td style={{width:"5%" }} className="text-center"                  >
+                <input type="checkbox" name="reviceType" checked={this.state.work.reviceType}  value={this.state.work.reviceType}
+                    onChange={this.handleChangeReviceType}
+                />
+            </td>
+            <td style={{width:"14%"}}                                         >
+                <input type="text" name="reviceRsn" value={this.state.work.reviceRsn}
+                    onChange={this.handleChangeReviceRsn}
+                    onFocus ={this.handleFocusReviceRsn}
+                    onBlur  ={this.handleBlurReviceRsn}
+                />
+            </td>
+            <input type="hidden" name="exeWorkCd"          value={this.props.work.exeWorkCd} />
+            <input type="hidden" name="exeWorkSts"         value={this.props.work.exeWorkSts} />
+            <input type="hidden" name="basisStdTaskCd"     value={this.props.work.basisStdTaskCd} />
+            <input type="hidden" name="plnWorkCoordinateX" value={this.props.work.plnWorkCoordinateX} />
+            <input type="hidden" name="plnWorkCoordinateY" value={this.props.work.plnWorkCoordinateY} />
+        </tr>
+    );
+  }
+});
+
+// リソース
+var ResourceList = React.createClass({
+  handleResourceChange: function(e) {
+    this.props.onResourceChange($(e.currentTarget).val(), this.props.workKey);
+  },
+  render: function() {
+    var options = this.props.resource.map(function(record) {
+      return <ResouceRow record={record} />
+    });
+    return <select id="resource" className="form-control" onChange={this.handleResourceChange} value={this.props.plnWorkResourceCd} >{options}</select>
+  }
+});
+
+// リソースオプション
+var ResouceRow = React.createClass({
+  render: function() {
+    return <option value={this.props.record.resourceCd}>{this.props.record.resourceNm}</option>
+  }
+});
+
+// レポーター
+var ReporterList = React.createClass({
+  handleReporterChange: function(e) {
+   this.props.onReporterChange($(e.currentTarget).val(), this.props.workKey);
+  },
+  render: function() {
+    var options = this.props.reporter.map(function(record) {
+      return <ReporterRow record={record} />
+    });
+    return <select id="reporter" className="form-control" onChange={this.handleReporterChange} value={this.props.plnWorkReporterCd}>{options}</select>
+  }
+});
+
+// レポーターオプション
+var ReporterRow = React.createClass({
+  render: function() {
+    return <option value={this.props.record.resourceCd}>{this.props.record.resourceNm}</option>
+  }
+});
+
+// 成果物（図書）
+var BooksInfo = React.createClass({
+  getInitialState: function() {
+    return {books: []};
+  },
+  componentWillMount: function() {
+    console.debug("BooksInfo");
+  },
+
+  render: function() {
+    console.debug("BooksInfoRender");
+    var booksList = this.props.books.map(function(book) {
+      return <BooksRow book={book} key={book.id} />
+    }.bind(this));
+
+    return (
+        <div>
+            <table className="table table-books-fixed">
+                <thead>
+                    <tr>
+                        <th style={{width:"19%"}} className="text-center">社内図書番号</th>
+                        <th style={{width:"30%"}} className="text-center">成果物名</th>
+                        <th style={{width:"7%" }} className="text-center">削除</th>
+                        <th style={{width:"30%"}} className="text-center">改定理由</th>
+                        <th style={{width:"7%" }} className="text-center">EDMS</th>
+                        <th style={{width:"7%" }} className="text-center">PMS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {booksList}
+                </tbody>
+            </table>
+        </div>
+    );
+  }
+});
+
+// 成果物（図書）一覧
+var BooksRow = React.createClass({
+  getInitialState: function() {
+    return {
+        book: {
+            id:                     this.props.book.id,
+            actDeliverableCd:       this.props.book.actDeliverableCd,
+            inhDocNo:               this.props.book.inhDocNo,
+            actDeliverableNm:       this.props.book.actDeliverableNm,
+            reviceType:             this.props.book.reviceType,
+            reviceRsn:              this.props.book.reviceRsn,
+            edmsManagedFlg:         this.props.book.edmsManagedFlg,
+            pmsManagedFlg:          this.props.book.pmsManagedFlg
+        }
+    };
+  },
+  componentWillMount: function() {
+    console.debug("BooksRow");
+  },
+
+  // 社内図書番号変更イベント
+  handleChangeInhDocNo: function(e) {
+    this.state.book.inhDocNo = e.target.value;
+    this.setState(this.state.book);
+  },
+  // 社内図書番号フォーカスイベント
+  handleFocusInhDocNo: function(e) {
+    this.state.book.inhDocNo = e.target.value;
+    this.setState(this.state.book);
+  },
+  // 社内図書番号フォーカスアウトイベント
+  handleBlurInhDocNo: function(e) {
+    this.state.book.inhDocNo = e.target.value;
+    this.setState(this.state.book);
+  },
+  // 成果物名変更イベント
+  handleChangeActDeliverableNm: function(e) {
+    this.state.book.actDeliverableNm = e.target.value;
+    this.setState(this.state.book);
+  },
+  // 成果物名フォーカスイベント
+  handleFocusActDeliverableNm: function(e) {
+    this.state.book.actDeliverableNm = e.target.value;
+    this.setState(this.state.book);
+  },
+  // 成果物名フォーカスアウトイベント
+  handleBlurActDeliverableNm: function(e) {
+    this.state.book.actDeliverableNm = e.target.value;
+    this.setState(this.state.book);
+  },
+  // 改訂理由変更イベント
+  handleChangeReviceRsn: function(e) {
+    this.state.book.reviceRsn = e.target.value;
+    this.setState(this.state.book);
+  },
+  // 改訂理由フォーカスイベント
+  handleFocusReviceRsn: function(e) {
+    this.state.book.reviceRsn = e.target.value;
+    this.setState(this.state.book);
+  },
+  // 改訂理由フォーカスアウトイベント
+  handleBlurReviceRsn: function(e) {
+    this.state.book.reviceRsn = e.target.value;
+    this.setState(this.state.book);
+  },
+  // 改定区分変更イベント
+  handleChangeReviceType: function(e) {
+    this.state.book.reviceType = e.target.checked;
+    this.setState(this.state.book);
+  },
+  // EDMS変更イベント
+  handleChangeEdmsManagedFlg: function(e) {
+    this.state.book.edmsManagedFlg = e.target.checked;
+    this.setState(this.state.book);
+  },
+  // PMS変更イベント
+  handleChangePmsManagedFlg: function(e) {
+    this.state.book.pmsManagedFlg = e.target.checked;
+    this.setState(this.state.book);
+  },
+
+  render: function() {
+    return (
+        <tr className="bookRow" id={this.props.book.actDeliverableCd}>
+            <td style={{width:"19%"}}>
+                <input type="text" name="inhDocNo" value={this.state.book.inhDocNo} className=""
+                    onChange={this.handleChangeInhDocNo}
+                    onFocus ={this.handleFocusInhDocNo}
+                    onBlur  ={this.handleBlurInhDocNo}
+                />
+            </td>
+            <td style={{width:"30%"}}>
+                <input type="text" name="actDeliverableNm" value={this.state.book.actDeliverableNm} className=""
+                    onChange={this.handleChangeActDeliverableNm}
+                    onFocus ={this.handleFocusActDeliverableNm}
+                    onBlur  ={this.handleBlurActDeliverableNm}
+                />
+            </td>
+            <td style={{width:"7%" }} className="text-center">
+                <input type="checkbox" name="reviceType" checked={this.state.book.reviceType} value={this.state.book.reviceType}
+                    onChange={this.handleChangeReviceType} />
+            </td>
+            <td style={{width:"30%"}}>
+                <input type="text" name="reviceRsn" value={this.state.book.reviceRsn}
+                    onChange={this.handleChangeReviceRsn}
+                    onFocus ={this.handleFocusReviceRsn}
+                    onBlur  ={this.handleBlurReviceRsn}
+                />
+            </td>
+            <td style={{width:"7%" }} className="text-center">
+                <input type="checkbox" name="edmsManagedFlg" checked={this.state.book.edmsManagedFlg} value={this.state.book.edmsManagedFlg}
+                    onChange={this.handleChangeEdmsManagedFlg} />
+            </td>
+            <td style={{width:"7%" }} className="text-center">
+                <input type="checkbox" name="pmsManagedFlg" checked={this.state.book.pmsManagedFlg} value={this.state.book.pmsManagedFlg}
+                    onChange={this.handleChangePmsManagedFlg} />
+             </td>
+            <input type="hidden" name="actDeliverableNm" value={this.props.book.actDeliverableNm} />
+            <input type="hidden" name="actDeliverableCd" value={this.props.book.actDeliverableCd} />
+        </tr>
+    );
+  }
+});
+
+// 成果物（図書以外）
+var BookOthersInfo = React.createClass({
+  getInitialState: function() {
+    return {booksOther: []};
+  },
+  componentWillMount: function() {
+    console.debug("BookOthersInfo");
+  },
+
+  render: function() {
+   console.debug("BookOthersInfoRender");
+    var bookOtherList = this.props.booksOther.map(function(bookOther) {
+      return <BookOtherRow bookOther={bookOther} key={bookOther.id} />
+    }.bind(this));
+
+    return (
+        <div>
+            <table className="table table-books2-fixed">
+                <thead>
+                    <tr>
+                        <th style={{width:"40%" }} className="text-center">成果物名</th>
+                        <th style={{width:"10%" }} className="text-center">削除    </th>
+                        <th style={{width:"50%" }} className="text-center">改定理由</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {bookOtherList}
+                </tbody>
+            </table>
+        </div>
+    );
+  }
+});
+
+var BookOtherRow = React.createClass({
+  getInitialState: function() {
+    return {
+        bookOther: {
+            id:                     this.props.bookOther.id,
+            actDeliverableCd:       this.props.bookOther.actDeliverableCd,
+            actDeliverableNm:       this.props.bookOther.actDeliverableNm,
+            reviceType:             this.props.bookOther.reviceType,
+            reviceRsn:              this.props.bookOther.reviceRsn,
+        }
+    };
+  },
+  componentWillMount: function() {
+    console.debug("BookOtherRow");
+  },
+
+  // 成果物名変更イベント
+  handleChangeActDeliverableNm: function(e) {
+    this.state.bookOther.actDeliverableNm = e.target.value;
+    this.setState(this.state.bookOther);
+  },
+  // 成果物名フォーカスイベント
+  handleFocusActDeliverableNm: function(e) {
+    this.state.bookOther.actDeliverableNm = e.target.value;
+    this.setState(this.state.bookOther);
+  },
+  // 成果物名フォーカスアウトイベント
+  handleBlurActDeliverableNm: function(e) {
+    this.state.bookOther.actDeliverableNm = e.target.value;
+    this.setState(this.state.bookOther);
+  },
+  // 改訂理由変更イベント
+  handleChangeReviceRsn: function(e) {
+    this.state.bookOther.reviceRsn = e.target.value;
+    this.setState(this.state.bookOther);
+  },
+  // 改訂理由フォーカスイベント
+  handleFocusReviceRsn: function(e) {
+    this.state.bookOther.reviceRsn = e.target.value;
+    this.setState(this.state.bookOther);
+  },
+  // 改訂理由フォーカスアウトイベント
+  handleBlurReviceRsn: function(e) {
+    this.state.bookOther.reviceRsn = e.target.value;
+    this.setState(this.state.bookOther);
+  },
+  // 改定区分変更イベント
+  handleChangeReviceType: function(e) {
+    this.state.bookOther.reviceType = e.target.checked;
+    this.setState(this.state.bookOther);
+  },
+  render: function() {
+    return (
+        <tr className="otherRow" id={this.props.bookOther.actDeliverableCd}>
+            <td style={{width:"40%"}}>
+                <input type="text" name="actDeliverableNm" value={this.state.bookOther.actDeliverableNm} className=""
+                    onChange={this.handleChangeActDeliverableNm}
+                    onFocus ={this.handleFocusActDeliverableNm}
+                    onBlur  ={this.handleBlurActDeliverableNm}
+                />
+            </td>
+            <td style={{width:"10%" }} className="text-center">
+                <input type="checkbox" name="reviceType" checked={this.state.bookOther.reviceType} value={this.state.bookOther.reviceType}
+                    onChange={this.handleChangeReviceType} />
+            </td>
+            <td style={{width:"50%"}}>
+                <input type="text" name="reviceRsn" value={this.state.bookOther.reviceRsn}
+                    onChange={this.handleChangeReviceRsn}
+                    onFocus ={this.handleFocusReviceRsn}
+                    onBlur  ={this.handleBlurReviceRsn}
+                />
+            </td>
+            <input type="hidden" name="actDeliverableCd" value={this.props.bookOther.actDeliverableCd} />
+            <input type="hidden" name="actDeliverableNm" value={this.props.bookOther.actDeliverableNm} />
+        </tr>
+    );
+  }
+});
+
+function init() {
+  React.render(<Main />, $("#main")[0]);
+
+
+  $(document).ready(function(){
+    var urlParams = getUrlParams();
+    // URLパラメータ設定
+//    if( urlParams.jobCd) {
+//    }
+
+    if (undefined != urlParams) {
+
+    }
+
+
+    // 確定押下
+    $("#btn_save").on('click',function() {
+        console.info("btn_save is clicked.");
+
+        showDialogW2("EB0I-0**",{
+            yes: function() {
+                var params = [];
+                params.push("jobCd="          + jobCd);
+                params.push("exeTaskCd="      + exeTaskCd);
+                params.push("scheduleCreSts=" + scheduleCreSts);
+                params.push("revisionNo="     + revisionNo);
+                var url = screenId + ".html?" + params.join("&");
+                location.replace(url);
+                windoow.close();
+            }
+        });
+
+
+        try {
+            // 確定ボタン非活性化
+            $("#btn_save").prop("disabled",true);
+
+            var reqData = {
+                task        :{},
+                works       :[],
+                books       :[],
+                booksOther  :[],
+            };
+
+            // ワーク情報
+            var workRow = $("tr.workRow");
+            jQuery.each(workRow, function() {
+                var id                   = this.querySelector("[name=id]").value;
+                var exeTaskCd            = this.querySelector("[name=exeTaskCd]").value;
+                var basisStdWorkCd       = this.querySelector("[name=basisStdWorkCd]").value;
+                var exeWorkNm            = this.querySelector("[name=exeWorkNm]").value;
+                var exeWorkSts           = this.querySelector("[name=exeWorkSts]").value;
+                var internalOutsourceFlg = this.querySelector("[name=internalOutsourceFlg]").value;
+                var volumeDependencyFlg  = this.querySelector("[name=volumeDependencyFlg]").value;
+                var daysCalCoefficient   = this.querySelector("[name=daysCalCoefficient]").value;
+                var mhCalCoefficient     = this.querySelector("[name=mhCalCoefficient]").value;
+                var initWorkDays         = this.querySelector("[name=initWorkDays]").value;
+                var initWorkMh           = this.querySelector("[name=initWorkMh]").value;
+                var editWorkDays         = this.querySelector("[name=editWorkDays]").value;
+                var editWorkMh           = this.querySelector("[name=editWorkMh]").value;
+                var plnWorkStartedOn     = this.querySelector("[name=plnWorkStartedOn]").value;
+                var plnWorkEndedOn       = this.querySelector("[name=plnWorkEndedOn]").value;
+                var milestoneSettedOn    = this.querySelector("[name=milestoneSettedOn]").value;
+                var plnWorkResourceCd    = this.querySelector("[name=plnWorkResourceCd]").value;
+                var plnWorkReporterCd    = this.querySelector("[name=plnWorkReporterCd]").value;
+                var reviceType           = this.querySelector("[name=reviceType]").value;
+                var reviceRsn            = this.querySelector("[name=reviceRsn]").value;
+                var plnWorkCoordinateX   = this.querySelector("[name=plnWorkCoordinateX]").value;
+                var plnWorkCoordinateY   = this.querySelector("[name=plnWorkCoordinateY]").value;
+                var workData = {
+                    "id"                    :id,
+                    "exeWorkCd"             :exeWorkCd,
+                    "basisStdWorkCd"        :basisStdWorkCd,
+                    "exeWorkNm"             :exeWorkNm,
+                    "exeWorkSts"            :exeWorkSts,
+                    "internalOutsourceFlg"  :internalOutsourceFlg,
+                    "volumeDependencyFlg"   :volumeDependencyFlg,
+                    "daysCalCoefficient"    :daysCalCoefficient,
+                    "mhCalCoefficient"      :mhCalCoefficient,
+                    "initWorkDays"          :initWorkDays,
+                    "initWorkMh"            :initWorkMh,
+                    "editWorkDays"          :editWorkDays,
+                    "editWorkMh"            :editWorkMh,
+                    "plnWorkStartedOn"      :plnWorkStartedOn,
+                    "plnWorkEndedOn"        :plnWorkEndedOn,
+                    "milestoneSettedOn"     :milestoneSettedOn,
+                    "plnWorkResourceCd"     :plnWorkResourceCd,
+                    "plnWorkReporterCd"     :plnWorkReporterCd,
+                    "reviceType"            :reviceType,
+                    "reviceRsn"             :reviceRsn,
+                    "plnWorkCoordinateX"    :plnWorkCoordinateX,
+                    "plnWorkCoordinateY"    :plnWorkCoordinateY,
+
+                };
+                reqData.push(workData);
+                console.dir(workData);
+            });
+
+            // 作成物（図書）情報
+            var bookRow = $("tr.bookRow");
+            jQuery.each(bookRow, function() {
+
+            });
+
+            // 作成物（図書以外）情報
+            var otherRow = $("tr.otherRow");
+            jQuery.each(otherRow, function() {
+
+            });
+        }
+        catch(e) {
+        }
+        finally {
+            // 確定ボタン活性化
+            $("#btn_save").prop("disabled",false);
+        }
+
+    });
+
+    // キャンセル押下
+    $("#btn_cancel").on('click',function() {
+        console.info("btn_cancel is clicked.");
+
+        showDialogW2("EB0W-0**",{
+            yes: function() {
+                var params = [];
+                params.push("jobCd="          + jobCd);
+                params.push("exeTaskCd="      + exeTaskCd);
+                params.push("scheduleCreSts=" + scheduleCreSts);
+                params.push("revisionNo="     + revisionNo);
+                var url = screenId + ".html?" + params.join("&");
+                location.replace(url);
+                windoow.close();
+            }
+        });
+    });
+  });
+}
+        </script>
+    </head>
+
+    <body onload="init()">
+        <div class="header">
+            <span class="header-item title">タスク_ワーク編集</span>
+        </div>
+        <div id="main" class="container-fluid"></div>
+        <div class="container-fluid">
+            <!-- ワークネットワーク図 -->
+            <div class="row">
+                <div id="paper"></div>
+            </div>
+        </div>
+
+
+    </body>
+</html>

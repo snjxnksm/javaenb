@@ -1,0 +1,590 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>EB10801WJA:日程リソース設定</title>
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<!-- font-awesome CSS -->
+	<link rel="stylesheet" href="font-awesome/css/font-awesome.min.css" >
+	<link rel="stylesheet" href="css/es_style.css">
+
+	<!-- jQuery first, then Tether, then Bootstrap JS. -->
+	<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+	<script src="http://fb.me/react-0.13.3.js"></script>
+	<script src="http://fb.me/JSXTransformer-0.13.3.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="js/es_common.js"></script>
+	<script src="js/errormsg_const.js"></script>
+
+	<style type="text/css">
+		.input-group { padding: 10px; margin: 0;}
+		.form-group  { padding: 10px; margin: 0;}
+
+	/*日程_リソース一覧用*/
+		/*リスト調整*/
+		.list{
+			margin-top:10px;
+		}
+		.listMile{
+			margin-top:10px;
+		}
+		/*スクロール用*/
+		thead.scrollHead,tbody.scrollBody{
+  			display:block;
+		}
+		tbody.scrollBody{
+			overflow-y:scroll;
+			height: 550px;
+		}
+		/*幅調整*/
+		td,th{
+			table-layout:fixed;
+		}
+		/*テーブル見出し*/
+		th{
+			background-color:#305EA9;
+			color:#ffffff;
+		}
+		/*各セルのクラスで横幅指定*/
+		/*タスク名*/
+		.selTaskNm{
+			width:7.5em;
+			word-break:break-all;
+		}
+		/*警告*/
+		.selWarning{
+			width:4em;
+			word-break:break-all;
+		}
+		/*日程展開*/
+		.selScheduleExpansion{
+			width:5em;
+			word-break:break-all;
+		}
+		/*ワーク名*/
+		.selWorkNm{
+			width:7em;
+			word-break:break-all;
+		}
+		/*削除／追加*/
+		.selDelAdd{
+			width:5em;
+			word-break:break-all;
+		}
+		/*期間*/
+		.selPeriod{
+			width:4em;
+			word-break:break-all;
+		}
+		/*ワーク予定開始日*/
+		.selWorkStartDay{
+			width:7em;
+			word-break:break-all;
+		}
+		/*ワーク予定終了日*/
+		.selWorkEndDay{
+			width:7em;
+			word-break:break-all;
+		}
+		/*リソース*/
+		.selResource{
+			width:8.5em;
+			word-break:break-all;
+		}
+		/*レポーター*/
+		.selReporter{
+			width:8.5em;
+			word-break:break-all;
+		}
+		/*詳細*/
+		.selDetails{
+			width:7em;
+			word-break:break-all;
+			text-align:center;
+		}
+		/*マイルストーン予定日*/
+		.selMilestoneDay{
+			width:8em;
+			word-break:break-all;
+		}
+		/*比較*/
+		.selComparison{
+			width:6em;
+			word-break:break-all;
+		}
+	</style>
+
+
+	<script type="text/jsx">
+		function isDate(strDate) {
+			if (!strDate.match(/\d{8}/)) {return false;}
+			return true;
+		}
+
+		/*URLパラメータ*/
+		var urlParams = getUrlParams();
+		/*JOBコード*/
+		var jobCd;
+		/*改定番号*/
+		var revisionNo;
+		/*スケジュール作成ステータス*/
+		var scheduleCreSts;
+		/*メッセージコード*/
+		var messageCd;
+		/*メッセージ本文*/
+		var message;
+		/*編集権フラグ*/
+		var editRightFlg;
+		/*画面ID*/
+		var dispId;
+		/*実施タスクコード*/
+		var execTaskCd;
+		/*画面戻り区分*/
+		var returnType;
+		/*日程変更フラグ*/
+		var scheduleFixedFlg;
+
+		if (undefined != urlParams) {
+			jobCd = urlParams.jobCd;
+			revisionNo = urlParams.revisionNo;
+			scheduleCreSts = urlParams.scheduleCreSts;
+			messageCd = (urlParams.messageCd)?urlParams.messageCd:"";
+			message = (urlParams.message)?urlParams.message:"";
+			editRightFlg = (urlParams.editRightFlg)?urlParams.editRightFlg:"";
+			dispId = (urlParams.dispId)?urlParams.dispId:"";
+			execTaskCd = (urlParams.execTaskCd)?urlParams.execTaskCd:"";
+			returnType = (urlParams.returnType)?urlParams.returnType:"";
+			scheduleFixedFlg = (urlParams.scheduleFixedFlg)?urlParams.scheduleFixedFlg:"";
+		}
+
+		//初期表示時
+		function init() {
+			React.render(<JobName url="/EB10801WJA/jobInfo" />,  $("#jobNm")[0]);
+			React.render(<ScheduleResourceList url="/EB10801WJA/initScheduleResource" />,  $("#scheduleResourceList")[0]);
+			React.render(<MilestoneComparisonList url="/EB10801WJA/initMilestoneComparison" />,  $("#milestoneComparisonList")[0]);
+		}
+
+		//JOB名取得
+		var JobName = React.createClass($.extend(true, {}, ReactAjaxBase, {
+			getInitialData: function() {
+				return {};
+			},
+			componentDidMount: function() {
+				var reqData = { "jobCd": jobCd };
+				this.doAjax(this.props.url, reqData);
+			},
+			render: function() {
+				var jobNm = this.state.data.jobNm;
+				return (<span>{jobNm}</span>);
+			}
+		}));
+
+
+		//日程／リソース設定一覧取得
+		var ScheduleResourceList = React.createClass($.extend(true, {}, ReactAjaxBase, {
+			getInitialData: function() {
+				return {};
+			},
+			componentDidMount: function() {
+				var reqData = { "jobCd": jobCd };
+				this.doAjax(this.props.url, reqData);
+			},
+			render: function() {
+				return (
+					<div>
+						<ScheduleResourceListhead result={this.getData()} />
+					</div>
+				);
+			}
+		}));
+
+		//日程／リソース設定一覧レコード(head)
+		var ScheduleResourceListhead = React.createClass({
+			render: function() {
+				//var records = this.props.result.map(function(record) {
+				//	return <ScheduleResourceListRow record={record} />
+				//});
+				return (
+					<table className="ListTable table table-striped">
+						<thead class="scrollHead">
+							<tr><th colspan="11">日程／リソース設定一覧</th></tr>
+							<tr>
+								<th class = "selTaskNm">タスク名</th>
+								<th class = "selWarning">警告</th>
+								<th class = "selScheduleExpansion ">日程展開</th>
+								<th class = "selWorkNm">ワーク名</th>
+								<th class = "selDelAdd">削除／追加</th>
+								<th class = "selPeriod">期間</th>
+								<th class = "selWorkStartDay">ワーク予定開始日</th>
+								<th class = "selWorkEndDay">ワーク予定終了日</th>
+								<th class = "selResource">リソース</th>
+								<th class = "selReporter">レポーター</th>
+								<th class = "selDetails">詳細</th>
+							</tr>
+						</thead>
+						<tbody class="scrollBody">
+							<ScheduleResourceListRow  />
+						</tbody>
+					</table>
+				);
+			}
+		});
+
+		//日程／リソース設定一覧結果レコード(row)
+		var ScheduleResourceListRow = React.createClass({
+			propTypes: {
+				record: React.PropTypes.shape({
+					id:                           React.PropTypes.string.isRequired,
+					selTaskNm:                    React.PropTypes.string.isRequired,
+					selWarning:                   React.PropTypes.string.isRequired,
+					selScheduleExpansion:         React.PropTypes.string.isRequired,
+					selWorkNm:                    React.PropTypes.string.isRequired,
+					selDelAdd:                    React.PropTypes.string.isRequired,
+					selPeriod:                    React.PropTypes.string.isRequired,
+					selWorkStartDay:              React.PropTypes.string.isRequired,
+					selResource:                  React.PropTypes.string.isRequired,
+					selReporter:                  React.PropTypes.string.isRequired,
+					selDetails:                   React.PropTypes.string.isRequired
+				}),
+    			handleClickDetail: React.PropTypes.func.isRequired
+			},
+			render: function() {
+				return (
+					<div>
+						<tr>
+							<td class = "selTaskNm">配置図</td>
+							<td class = "selWarning">警告</td>
+							<td class = "selScheduleExpansion">対象外</td>
+							<td class = "selWorkNm">ワークA-1</td>
+							<td class = "selDelAdd">削除</td>
+							<td class = "selPeriod">10</td>
+							<td class = "selWorkStartDay">2017/4/12</td>
+							<td class = "selWorkEndDay">2017/6/12</td>
+							<td class = "selResource">○○　太郎</td>
+							<td class = "selReporter">○○　太郎</td>
+							<td class = "selDetails"><button type="button" id="details">詳細</button></td>
+						</tr>
+
+						<tr><td class = "selTaskNm" rowspan="4">配置図</td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/4/12</td><td class = "selWorkEndDay">2017/6/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+						<tr><td class = "selTaskNm" ></td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/12/12</td><td class = "selWorkEndDay">2017/12/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+						<tr><td class = "selTaskNm" ></td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/4/12</td><td class = "selWorkEndDay">2017/6/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+						<tr><td class = "selTaskNm" ></td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/4/12</td><td class = "selWorkEndDay">2017/6/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+						<tr><td class = "selTaskNm">配置図</td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/4/12</td><td class = "selWorkEndDay">2017/6/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+						<tr><td class = "selTaskNm">配置図</td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/4/12</td><td class = "selWorkEndDay">2017/6/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+						<tr><td class = "selTaskNm">配置図</td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/4/12</td><td class = "selWorkEndDay">2017/6/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+						<tr><td class = "selTaskNm">配置図</td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/4/12</td><td class = "selWorkEndDay">2017/6/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+						<tr><td class = "selTaskNm">配置図</td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/4/12</td><td class = "selWorkEndDay">2017/6/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+						<tr><td class = "selTaskNm">配置図</td><td class = "selWarning">警告</td><td class = "selScheduleExpansion">対象外</td><td class = "selWorkNm">ワークA-1</td><td class = "selDelAdd">削除</td><td class = "selPeriod">10</td><td class = "selWorkStartDay">2017/4/12</td><td class = "selWorkEndDay">2017/6/12</td><td class = "selResource">○○　太郎</td><td class = "selReporter">○○　太郎</td><td class = "selDetails"><button type="button" id="details">詳細</button></td></tr>
+					</div>
+				);
+			}
+		});
+
+		//マイルストーン比較一覧取得
+		var MilestoneComparisonList = React.createClass($.extend(true, {}, ReactAjaxBase, {
+			getInitialData: function() {
+				return {};
+			},
+			componentDidMount: function() {
+				var reqData = { "jobCd": jobCd };
+				this.doAjax(this.props.url, reqData);
+			},
+			render: function() {
+				return (
+					<div>
+						<MilestoneComparisonListhead result={this.getData()} />
+					</div>
+				);
+			}
+		}));
+
+		//マイルストーン比較一覧レコード(head)
+		var MilestoneComparisonListhead = React.createClass({
+			render: function() {
+				//var records = this.props.result.map(function(record) {
+				//	return <ScheduleResourceListRow record={record} />
+				//});
+				return (
+					<table className="ListTable table table-striped">
+						<thead class="scrollHead">
+							<tr><th colspan="5">マイルストーン比較一覧</th></tr>
+							<tr>
+								<th class="selTaskNm">タスク名</th>
+								<th class = "selWorkNm">ワーク名</th>
+								<th class = "selMilestoneDay">マイルストーン予定日</th>
+								<th class = "selWorkEndDay">ワーク予定終了日</th>
+								<th class = "selComparison">比較</th>
+							</tr>
+						</thead>
+						<tbody class="scrollBody">
+							<MilestoneComparisonListRow  />
+						</tbody>
+					</table>
+				);
+			}
+		});
+
+		//マイルストーン比較一覧結果レコード(row)
+		var MilestoneComparisonListRow = React.createClass({
+
+			render: function() {
+				return (
+					<div>
+						<tr>
+							<td class="selTaskNm">配管仕様書</td>
+							<td class = "selWorkNm">客先提出</td>
+							<td class = "selMilestoneDay" id="milestoneDay"><input type="text" class = "selMilestoneDay"value="2017/12/20"></input></td>
+							<td class = "selWorkEndDay">2017/4/11</td>
+							<td class = "selComparison">20日先行</td>
+						</tr>
+						<tr>
+							<td class="selTaskNm">配管仕様書</td>
+							<td class = "selWorkNm">客先提出</td>
+							<td class = "selMilestoneDay" id="milestoneDay"><input type="text" class = "selMilestoneDay"value="2017/12/20"></input></td>
+							<td class = "selWorkEndDay">2017/4/11</td>
+							<td class = "selComparison">20日先行</td>
+						</tr>
+						<tr>
+							<td class="selTaskNm"></td>
+							<td class = "selWorkNm">客先提出</td>
+							<td class = "selMilestoneDay" id="milestoneDay"><input type="text" class = "selMilestoneDay"value="2017/12/20"></input></td>
+							<td class = "selWorkEndDay">2017/4/11</td>
+							<td class = "selComparison">20日先行</td>
+						</tr>
+						<tr>
+							<td class="selTaskNm"></td>
+							<td class = "selWorkNm">客先提出</td>
+							<td class = "selMilestoneDay" id="milestoneDay"><input type="text" class = "selMilestoneDay"value="2017/12/20"></input></td>
+							<td class = "selWorkEndDay">2017/4/11</td>
+							<td class = "selComparison">20日先行</td>
+						</tr>
+					</div>
+				);
+			}
+		});
+
+		$(document).ready(function(){
+
+			if (undefined != urlParams) {
+				$("#jobCd").text(jobCd);
+				$("#revisionNo").text(revisionNo);
+
+				console.info("scheduleCreSts:=" + scheduleCreSts);
+				/*ボタン非活性処理*/
+				if ("B" != scheduleCreSts && "G" != scheduleCreSts ) {
+					$("#scheduleExpansion").prop("disabled", true);
+					$("#gantChart").prop("disabled", true);
+					$("#milestoneDayReflection").prop("disabled", true);
+					$("#scheduleExpansionDayText").prop("disabled", true);
+				}
+
+				var reqData = {
+					"jobCd": jobCd,
+					"revisionNo": revisionNo
+				};
+			}
+
+			//日程展開ボタン押下時
+			$("#scheduleExpansion").on('click',function() {
+
+				//日付の実在チェック
+				var scheduleExpansionDay = $(':text[name="scheduleExpansionDay"]').val();
+
+				//TODO  エラー処理見直し    エラー文言、入力値（2017/01/01はスラッシュが入っているためエラーになる）半角文字列
+				if ("" == scheduleExpansionDay) {
+					return false;
+				}
+				if (!isDate(scheduleExpansionDay)) {
+				//TODO ダイアログが出ない（React.render is not a function）
+					//event.preventDefault();
+					//"EB0E-010":"{1}は実在しない日付です。正しい日付を入力してください。",
+					showDialogE1("EB0E-010");
+					console.dir(this.refs);
+					return false;
+				}
+
+				//日付の休日チェック
+
+					//showDialogE1("EB0E-011");
+
+				//日程展開実施の確認
+
+					//showDialogW2("EB0W-024");
+
+				//マイルストーン予定日変更反映確認
+
+					//TODO第2引数
+					milestoneDayReflectionConf("EB0W-065","日程展開ボタン押下時");
+
+				//マイルストーン予定日の未入力確認
+					milestoneDayNotYetEnteredConf("EB0E-012","詳細ボタン押下時");
+
+			});
+
+			//マイルストーン予定日フォーカスアウト時
+			$(".selMilestoneDay").blur(function() {
+
+				//日付の実在チェック
+
+					//showDialogE1("EB0E-010");
+
+				//日付の休日チェック
+
+					//showDialogE1("EB0E-011");
+
+			});
+
+			//マイルストーン予定日反映ボタン押下時
+			$("#milestoneDayReflection").on('click',function() {
+
+				//マイルストーン予定日未入力確認
+					milestoneDayNotYetEnteredConf("EB0E-012","詳細ボタン押下時");
+
+			});
+
+			//ガントチャートボタン押下時
+			$("#gantChart").on('click',function() {
+
+				//マイルストーン予定日変更反映確認
+
+					//TODO第2引数
+					milestoneDayReflectionConf("EB0W-066","ガントチャートボタン押下時");
+
+				//マイルストーン予定日の未入力確認
+					milestoneDayNotYetEnteredConf("EB0E-012","詳細ボタン押下時");
+
+			});
+
+			//詳細ボタン押下時
+			$(".selDetails").on('click',function() {
+
+				//マイルストーン予定日変更反映確認
+					//TODO第2引数
+					milestoneDayReflectionConf("EB0W-067","詳細ボタン押下時");
+
+				//マイルストーン予定日の未入力確認
+					milestoneDayNotYetEnteredConf("EB0E-012","詳細ボタン押下時");
+
+			});
+			//JOB詳細に戻るボタン押下時
+			$("#btn_back").on('click',function() {
+
+				//JOB詳細に戻るときの確認
+				//TODO エラーダイアログ+処理
+				showDialogW2("EB0W-064",{
+					yes: function() {
+						//TODO JOB詳細画面へ
+					},
+					 no: function() {
+						//何もしない
+						alert("何もしない");
+					}
+				});
+
+				return true;
+
+			});
+
+			//マイルストーン予定日変更反映確認
+			function milestoneDayReflectionConf(errId, comment) {
+
+				//TODO エラーダイアログ+処理
+				showDialogW2(errId,{
+					yes: function() {
+						console.info("yes");
+						self.state.work.milestoneFlg = "0";
+						self.state.work.milestoneSettedOn = "";
+						self.setState(self.state.work);
+					},
+					 no: function() {
+						console.info("no");
+						elm.checked = true;
+					}
+				});
+
+				return true;
+			}
+
+			//マイルストーン予定日の未入力確認
+			function milestoneDayNotYetEnteredConf(errId) {
+
+				//TODO エラーダイアログ
+				//showDialogE1(errId);
+				return true;
+			}
+		});
+	</script>
+
+</head>
+
+<body onload="init()">
+<div class="row">
+	<div class="col-lg-12">
+		<div class="header">
+			<span class="header-item title" >日程_リソース設定</span>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="list col-lg-12">
+		<div class="col-lg-9">
+			<span class="item-label">JOBコード：</span>
+			<span class="item-label-value"  id="jobCd"></span>
+			<span class="item-label" >改定番号：</span>
+			<span class="item-label-value" id="revisionNo"></span>
+			<span class="item-label" >JOB名称：</span>
+			<span class="item-label-value" id="jobNm"></span>
+		</div>
+		<div class="col-lg-2 col-lg-offset-1">
+			<div class="col-lg-8 col-lg-offset-1">
+				<button class = "btn btn-info btn-sm btn-block" id="btn_back" type="button">JOB詳細に戻る</button>
+			</div>
+		</div>
+	</div>
+	<div class="list col-lg-12">
+		<div class="col-lg-7 col-lg-offset-1">
+			<div class="col-lg-4 col-lg-offset-3">
+				<div class="input-group">
+					<span class="input-group-addon">日程展開基準日：</span>
+					<span><input type="text" class="form-control" width="8em" name=scheduleExpansionDay id="scheduleExpansionDayText" placeholder="例：20170703" ></span>
+				</div>
+
+			</div>
+			<div class="col-lg-1">
+				<div class="input-group">
+					<button type="button" class="btn btn-info btn-sm btn-block" id="scheduleExpansion">日程展開</button>
+				</div>
+			</div>
+			<div class="col-lg-3 col-lg-offset-1">
+				<div class="input-group">
+					<button type="button" class="btn btn-info btn-sm btn-block" id="gantChart">ガントチャート</button>
+				</div>
+			</div>
+		</div>
+		<div class="listMile col-lg-2 col-lg-offset-2">
+			<div class="col-lg-8 col-lg-offset-1">
+				<button class ="btn btn-info btn-sm btn-block" type="button"  id="milestoneDayReflection">マイルストーン予定日反映</button>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-12">
+		<div class="col-lg-8" id="scheduleResourceList"></div>
+		<div class="col-lg-4" id="milestoneComparisonList"></div>
+	</div>
+</div>
+
+<script>
+	var jobInfo = ﻿{
+		"result": [
+			{
+			"jobNm":"島根県下水道消化ガス発電"
+			}
+				]
+			};
+</script>
+</body>
+</html>

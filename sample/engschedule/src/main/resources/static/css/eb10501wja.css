@@ -1,0 +1,42 @@
+.ListTable {
+	border-collapse: collapse;
+	margin: 0;
+	padding: 0;
+}
+.ListTable thead {
+	display: block;
+}
+.ListTable tbody {
+	display: block;
+	overflow-y: scroll;
+}
+.ListTable>thead>tr>th {
+	padding: 4px 4px 3px 4px;
+	white-space: nowrap;
+	text-align: center;
+}
+.ListTable>tbody>tr>td {
+	padding: 1px 4px 3px 4px;
+	vertical-align: middle;
+}
+.ListTable { width: 1350px; }
+.ListTable thead { width: 1350px; }
+.ListTable tbody { width: 1350px; height: 520px; }
+
+.input-group { padding: 10px; margin: 0;}
+.form-group  { padding: 10px; margin: 0;}
+
+.exe_task_nm         { width: 250px; }
+.exe_work_nm         { width: 260px; }
+.init_work_days      { width:  80px; }
+.edit_work_days      { width:  80px; }
+.milestone_flg       { width: 100px; }
+.milestone_setted_on { width: 100px; }
+.revice_type         { width:  80px; }
+.revice_rsn          { width: 260px; }
+.detail              { width: 120px; }
+.detail button      { width: 100px; }
+
+td.exe_task_nm>div  { width: 250px; }
+td.exe_work_nm>div  { width: 260px; }
+td.revice_rsn>div   { width: 260px; }

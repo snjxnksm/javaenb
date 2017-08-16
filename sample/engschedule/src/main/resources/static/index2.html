@@ -1,0 +1,155 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="css/bootstrap.min.css">
+
+<script src="http://fb.me/react-0.13.3.js"></script>
+<script src="http://fb.me/JSXTransformer-0.13.3.js"></script>
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script src="./js/bootstrap.min.js"></script>
+<script src="./js/es_common.js"></script>
+
+<style type="text/css">
+.item {
+	margin-bottom: 1em; width: 300px;
+}
+.txtfld {
+	border: 1px solid gray; border-radius: 5px; padding: 6px 12px;
+	margin: 0px 5px;
+}
+.loading {
+	height: 12pt;
+}
+</style>
+
+<script type="text/jsx">
+
+var TestForm = React.createClass($.extend(ReactAjaxBase, {
+  // this.state.dataの初期値を設定。
+  setInitialData: function(){
+    return {empName : "", isFound: false};
+  },
+
+  // フォーカスアウト時
+  onInputFieldBlur: function() {
+    // 入力を取得
+    var empId = this.refs.empId.getDOMNode().value;
+
+    if (empId != "") {
+      // 送信データを作成
+      var dataSnd = {
+        "empId": empId
+      };
+      // 通信
+      this.doAjax(this.props.url, dataSnd);
+    }
+    this.clearMessage();
+  },
+  onAjaxReceived: function() {
+    // 受信データはthis.getData()で取得する
+    var data = this.getData();
+
+    // 受信内容をチェックする。
+    if (!data.isFound) {
+      this.renderMessage($(this.refs.empId.getDOMNode()), "存在しない担当者コードです。");
+    }
+  },
+  render: function(){
+    return (
+      <div>
+        <div className="input-group">
+          <span className="input-group-addon">従業員ID</span>
+          <input type="text" className="form-control" ref="empId" onBlur={this.onInputFieldBlur} style={{width: 10 + "em"}} />
+        </div>
+        <div className="input-group">
+          <span className="input-group-addon">従業員名</span>
+          <span ref="empName" className="input-group-addon" style={{width: 10 + "em"}}>
+          {this.getDisplay(this.getData().empName)}
+          </span>
+        </div>
+      </div>
+    );
+  }
+}));
+
+var TestListForm = React.createClass($.extend(ReactAjaxBase, {
+  // this.state.dataの初期値を設定。
+  setInitialData: function(){
+    return {empIds : []};
+  },
+
+  // フォーカスアウト時
+  onInputFieldBlur: function() {
+    // 入力を取得
+    var empIds = this.refs.empId.getDOMNode().value.split(",");
+
+    if (empIds.length > 0) {
+      // 送信データを作成
+      var dataSnd = {
+        "empIds": [{id: 1}, {id: 2}]
+      };
+      // 通信
+      this.doAjax(this.props.url, dataSnd);
+    }
+    this.clearMessage();
+  },
+  onAjaxReceived: function() {
+    // 受信データはthis.getData()で取得する
+    var data = this.getData();
+  },
+  render: function(){
+    return (
+      <div>
+        <div className="input-group">
+          <span className="input-group-addon">従業員ID</span>
+          <input type="text" className="form-control" ref="empId" onBlur={this.onInputFieldBlur} style={{width: 10 + "em"}} />
+        </div>
+        <div className="input-group">
+          <span className="input-group-addon">従業員名</span>
+          <span ref="empName" className="input-group-addon" style={{width: 10 + "em"}}>
+          {this.getDisplay(this.getData())}
+          </span>
+        </div>
+      </div>
+    );
+  }
+}));
+
+function init() {
+  React.render(<TestForm url="api/employees/id/1" />, $("#content1")[0]);
+  React.render(<TestForm url="api/employees/id/2" />, $("#content2")[0]);
+  React.render(<TestForm url="api/employees/get" />, $("#content3")[0]);
+  React.render(<TestListForm url="api/employees/list" />, $("#content4")[0]);
+}
+
+</script>
+</head>
+
+<body onload="init()">
+
+<div class="container-fluid">
+<h1>いんでっくすつー</h1>
+<p>テキストフィールドに文字列を入力し、フォーカスアウトするとAjax通信して下に結果を表示します。<br>
+IDを入力して従業員名を取得するという設定です。（DBから、固定のIDでRESTAPIを呼び出します。）</p>
+
+<h3>正常ケース（id=1）</h3>
+<div id="content1" class="item"></div>
+
+<h3>エラーケース（id=2）</h3>
+<div id="content2" class="item"></div>
+
+<h3>JSON投げる</h3>
+<div id="content3" class="item"></div>
+
+<h3>JSONリスト投げる</h3>
+<div id="content4" class="item"></div>
+
+<p>実装はjs/es_common.jsにあるReactAjaxBaseを基底クラスとし、これを継承して本ページに記述するjsのように実装する形となります。
+</div>
+</body>
+</html>

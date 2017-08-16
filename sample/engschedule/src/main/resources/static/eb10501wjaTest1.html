@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+
+  </head>
+<body>
+JOBコード：<input type="text" id="jobCd" value="3160011" size="5"><br />
+改定番号：<input type="text" id="revisionNo" value="1" size="5"><br />
+スケジュール作成ステータス：<input type="text" id="scheduleCreSts" value="B" size="5"><br />
+<input type="text" id="scheduleCreSts" value="B"><br />
+<button type="button" id="btn_EB10201WJA"  name="eb10501wjaTest2">JOB詳細</button>
+
+	<script lang="javascript" type="text/javascript" charset="utf-8">
+		function $(selector) {
+			return document.querySelector(selector);
+		}
+
+		var win;
+		function window_open(url, id) {
+			var x = screen.width - 20;
+			var y = screen.height - 105;
+
+			// TSK標準PC
+			x = 1346;
+			y = 663;
+
+			if (null == win || win.closed) {
+				win = window.open(url, id,
+						"top=0px, left=0px, width=" + x + "px, height=" + y + "px, location=0, menubar=0, resizable=1, scrollbars=0, status=1, titlebar=0, toolbar=0");
+			}
+			win.focus();
+		}
+
+var params = [];
+params.push("jobCd=" + $("#jobCd").value);
+params.push("revisionNo=" + $("#revisionNo").value);
+params.push("scheduleCreSts=" + $("#scheduleCreSts").value);
+
+$("#btn_EB10201WJA").onclick = function() {
+	window_open(this.name + ".html?" +  params.join("&"), this.name);
+};
+
+    </script>
+</body>

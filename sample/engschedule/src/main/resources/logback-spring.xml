@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE logback>
+<configuration debug="true">
+  <include resource="org/springframework/boot/logging/logback/base.xml" />
+
+  <!--  ログファイル名  -->
+  <property name="logname" value="myapp" />
+  <!--  ログの出力場所
+        Windowsで実行した場合は、システムが起動しているカレントドライブの下に指定したパスが作られる。
+        ex) c:\var\log\myapp\myapp.log
+   -->
+  <property name="logpath" value="/var/log/myapp/" />
+
+  <!--
+     ログレベルはログの重要度を表します。
+    重要度の高い順に、下記の種類があります。
+    (traceを設定するとすべて出力されます)
+    error
+    warn
+    info
+    debug
+    trace
+   -->
+
+  <!--ローカル作業用 -->
+  <springProfile name="local">
+      <property name="ROOT_LEVEL" value="DEBUG" />
+  </springProfile>
+
+  <!--開発サーバ用 -->
+  <springProfile name="develop">
+      <property name="ROOT_LEVEL" value="INFO" />
+      <logger name="org.apache.http.wire" level="DEBUG"/>
+      <logger name="org.hibernate.SQL" level="DEBUG"/>
+  </springProfile>
+
+  <!--ステージングサーバ用 -->
+  <springProfile name="staging">
+      <property name="ROOT_LEVEL" value="INFO" />
+      <logger name="org.apache.http.wire" level="DEBUG"/>
+      <logger name="org.hibernate.SQL" level="DEBUG"/>
+  </springProfile>
+
+  <!--本番サーバ用 -->
+  <springProfile name="production">
+      <property name="ROOT_LEVEL" value="ERROR" />
+  </springProfile>
+
+  <!--  以下、appenderの記述 -->
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <target>System.out</target>
+    <encoder>
+      <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - \(%file:%line\) %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+     <file>${logpath}${logname}.log</file>
+     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- daily rollover -->
+      <fileNamePattern>${logpath}${logname}.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+      <maxHistory>100</maxHistory>
+    </rollingPolicy>
+     <encoder>
+       <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} - [%level] [%thread] \(%file:%line\) %message%n%xException</pattern>
+     </encoder>
+   </appender>
+
+   <!-- root ロガー設定  -->
+
+   <root level="${ROOT_LEVEL}">
+     <appender-ref ref="FILE" />
+   </root>
+
+</configuration>

@@ -1,0 +1,612 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>実施対象タスク選択画面</title>
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="css/bootstrap.min.css">
+		<!-- ES共通CSS -->
+		<link href="css/es_style.css" rel="stylesheet">
+
+		<style type="text/css">
+
+.vsection .row.upper-fixed {
+	height: 1%; /* 詰めたい場合は1px */
+}
+
+.vsection .row.lower-list {
+	height: auto; /* 画面下まで伸ばす、等間隔の場合はauto */
+	padding-top: 15px;
+	vertical-align: top;
+}
+
+.taskbaseType {
+	width: 120px;
+}
+
+.taskSearch {
+	width: 70px;
+}
+
+.jobInfo {
+	margin-left: 20px;
+	margin-bottom: 10px;
+	padding: 10px 10px 5px 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.ui-separate {
+	margin-bottom: 30px;
+}
+
+.taskTransferPanel .arrow {
+	font-size: 50px;
+	line-height: 1;
+}
+
+#candidateTasks {
+}
+
+#candidateTasks tbody {
+}
+
+#candidateTasks .taskGroup {
+	width: 200px;
+}
+#candidateTasks .taskName {
+	width: 30%;
+}
+
+#candidateTasks .planned {
+	width: 10%;
+}
+
+#candidateTasks .jobCode {
+	width: 15%;
+}
+
+#candidateTasks .jobName {
+	width: 25%;
+}
+
+#plannedTasks {
+}
+#plannedTasks tbody {
+}
+
+#plannedTasks .taskGroup {
+	width: 200px;
+}
+
+#plannedTasks .taskName {
+	width: 30%;
+}
+
+#plannedTasks .workAmt {
+	width: 10%;
+}
+
+#plannedTasks .toOffer {
+	width: 10%;
+}
+
+#plannedTasks .delete {
+	width: 10%;
+}
+
+#plannedTasks .reason {
+	width: 20%;
+}
+
+.taskTransfer {
+	display: table;
+	width: 100%;
+}
+
+.taskTransferPanel {
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+}
+
+		</style>
+
+		<script type="text/jsx">
+
+var TASK_BASE_TYPES = ["model", "past"];
+var TASK_SOURCES = ["std", "past"];
+
+var urlParams = getUrlParams();
+
+var Main = React.createClass({
+	ajaxJobInfo: new ReactAjax("/eb10401wja/jobinfo"),
+	ajaxTaskBase: new ReactAjax("/eb10401wja/modeltask"),
+	ajaxExtraTask: new ReactAjax("/eb10401wja/extratask"),
+	ajaxTaskTransfer: new ReactAjax("./testdata/plannedtasks.json"),
+	ajaxAffectModification: new ReactAjax("./testdata/plannedtasks.json"),
+
+	// 画面情報初期化
+	getInitialState: function() {
+		return {
+			jobinfo: {
+				jobCd: "",
+				jobRev: "",
+				jobNm: "",
+				basisPastJobCd: "",
+				basisPastJobNm: ""
+			}
+		};
+	},
+
+	// 初期表示処理
+	componentDidMount: function() {
+		this.ajaxTaskBase.addStateControl(this.refs.taskbaseForm);
+		this.ajaxExtraTask.addStateControl(this.refs.extraTaskForm);
+
+		this.ajaxJobInfo
+			.setRequest({
+				jobCd: urlParams.jobcd,
+				jobRev: urlParams.jobrev,
+			})
+			.get(function(response) {
+				this.setState({jobinfo: response});
+			}.bind(this))
+			.doAjax();
+	},
+
+	// ベース選択押下時
+	handleTaskBaseFormSubmit: function(data) {
+		this.ajaxTaskBase
+			.setRequest(data)
+			.get(function(response) {
+				this.refs.candidateTasks.setState({tasks: response, baseType: TASK_BASE_TYPES[0]});
+			}.bind(this))
+			.doAjax();
+	},
+
+	// タスク候補検索押下時
+	handleExtraTaskFormSubmit: function(data) {
+		this.ajaxExtraTask
+			.setRequest(data)
+			.get(function(response) {
+				this.refs.candidateTasks.setState({tasks: response, baseType: TASK_BASE_TYPES[1]});
+				this.refs.extraTaskForm.setState({isLoading: false});
+			}.bind(this))
+			.doAjax();
+	},
+
+	// 移動押下時
+	handleTaskTransferSubmit: function() {
+		var data = this.refs.candidateTasks.state;
+
+		this.ajaxTaskTransfer
+			.setRequest(data)
+			.get(function(response) {
+				this.refs.plannedTasks.setState({tasks: response});
+			}.bind(this))
+			.doAjax();
+	},
+
+	// 変更内容反映
+	handleModificationAffect: function() {
+		var data = this.refs.plannedTasks.state;
+
+		this.ajaxTaskTransfer
+			.setRequest(data)
+			.get(function(response) {
+				this.refs.plannedTasks.setState({tasks: response});
+			}.bind(this))
+			.doAjax();
+	},
+
+	render: function() {
+		return (
+			<div>
+
+				<div className="vsection">
+
+				<div className="row upper-fixed">
+					<div className="col-xs-6">
+						<div className="section-label">実施対象タスクのベース選択</div>
+						<TaskBaseForm ref="taskbaseForm" ajaxObj={this.ajaxTaskBase} onSubmit={this.handleTaskBaseFormSubmit} />
+						<div className="section-label">追加タスク取得元選択</div>
+						<ExtraTaskForm ref="extraTaskForm" ajaxObj={this.ajaxExtraTask} onSubmit={this.handleExtraTaskFormSubmit} />
+					</div>
+					<div className="col-xs-6">
+						<JobInfo ref="jobInfo" jobinfo={this.state.jobinfo} />
+						<ControlPanel />
+					</div>
+				</div>
+
+				</div>
+				<div className="vsection">
+
+				<div className="row lower-list">
+					<div className="col-xs-5 lower-list">
+						<div className="section-label">タスク候補一覧</div>
+						<CandidateTasks ref="candidateTasks" />
+					</div>
+					<div className="col-xs-1 lower-list">
+						<TaskTransferForm onSubmit={this.handleTaskTransferSubmit} />
+					</div>
+					<div className="col-xs-6 lower-list">
+						<div className="section-label">実施対象タスク一覧</div>
+						<PlannedTasks ref="plannedTasks" />
+					</div>
+				</div>
+
+				</div>
+
+			</div>
+		);
+	}
+});
+
+var TaskBaseForm = React.createClass({
+	baseTypes: TASK_BASE_TYPES,
+
+	getInitialState: function() {
+		return {
+				baseType: TASK_BASE_TYPES[0],
+				stdModelCd: "",
+				pastJobCd: ""
+			};
+	},
+
+	handleTaskBaseChange: function(e) {
+		this.setState({baseType: e.currentTarget.value});
+	},
+
+	handleStdModelLoaded: function(val) {
+		this.setState({stdModelCd: val});
+	},
+
+	handleStdModelChange: function(val) {
+		this.setState({stdModelCd: val});
+	},
+
+	handleSubmit: function(e) {
+		e.preventDefault();
+		this.props.onSubmit(this.state);
+	},
+
+	render: function() {
+		return (
+			<form id="baseTypesearch" onSubmit={this.handleSubmit}>
+				<div className="row">
+					<div className="col-xs-9">
+							<div className="input-group">
+								<span className="input-group-addon"><span className="label-container taskbaseType">
+									<input type="radio" id="taskbaseType_model" name="taskbaseType" value={this.baseTypes[0]}
+										checked={this.state.baseType === this.baseTypes[0]} onChange={this.handleTaskBaseChange} /><label htmlFor="taskbaseType_model">標準モデル</label></span></span>
+								<StdModelList ref="stdModelList" url="/eb10401wja/modellist" onLoad={this.handleStdModelLoaded} onChange={this.handleStdModelChange} />
+							</div>
+							<div className="input-group">
+								<span className="input-group-addon"><span className="label-container taskbaseType">
+									<input type="radio" id="taskbaseType_past" name="taskbaseType" value={this.baseTypes[1]}
+										checked={this.state.baseType === this.baseTypes[1]} disabled /><label htmlFor="taskbaseType_past">流用過去JOB</label></span></span>
+								<input id="pastJobCd" className="form-control" style={{width: "8em"}} />
+							</div>
+					</div>
+					<div className="col-xs-3">
+						<button type="submit" className="form-control" disabled={this.props.ajaxObj.isLoading()}>{this.props.ajaxObj.getDisplay("ベース選択")}</button>
+					</div>
+				</div>
+			</form>
+		);
+	}
+});
+
+var StdModelList = React.createClass($.extend(true, {}, ReactAjaxBase, {
+	getInitialData: function() {
+		return [];
+	},
+
+	componentDidMount: function() {
+		this.doAjax(this.props.url, {
+			jobCd: urlParams.jobcd
+		});
+	},
+
+	onAjaxResponse: function() {
+		this.props.onLoad(this.getData()[0].stdModelCd);
+	},
+
+	handleChange: function(e) {
+		this.props.onChange($(e.currentTarget).val());
+	},
+
+	render: function() {
+		var options = this.getData().map(function(entry) {
+			return <StdModelListRow record={entry} />
+		});
+		return <select id="stdmodel" className="form-control" onChange={this.handleChange}>{options}</select>
+	}
+}));
+
+var StdModelListRow = React.createClass({
+	render: function() {
+		return <option value={this.props.record.stdModelCd}>{this.props.record.stdModelNm}</option>
+	}
+});
+
+var ExtraTaskForm = React.createClass({
+	taskSources: TASK_SOURCES,
+
+	getInitialState: function() {
+		return {
+			taskSource: this.taskSources[0],
+			taskNm: "",
+			jobCd: ""
+		};
+	},
+
+	handleTaskSourceChange: function(e) {
+		this.setState({taskSource: e.currentTarget.value});
+	},
+
+	handleTaskNmChange: function(e) {
+		this.setState({taskNm: e.currentTarget.value});
+	},
+
+	handleSubmit: function(e) {
+		e.preventDefault();
+		this.props.onSubmit(this.state);
+	},
+
+	render: function() {
+		return (
+			<form id="exTaskSearch" onSubmit={this.handleSubmit}>
+				<div className="row">
+					<div className="col-xs-3">
+						<div className="input-group">
+							<span className="item-label"><input type="radio" id="exTaskSource_std" name="exTaskSource" value={this.taskSources[0]}
+								checked={this.state.taskSource === this.taskSources[0]} onChange={this.handleTaskSourceChange} /><label htmlFor="exTaskSource_std">標準タスク</label></span>
+						</div>
+						<div className="input-group">
+							<span className="item-label"><input type="radio" id="exTaskSource_past" name="exTaskSource" value={this.taskSources[1]}
+								checked={this.state.taskSource === this.taskSources[1]} onChange={this.handleTaskSourceChange} disabled /><label htmlFor="exTaskSource_past">過去JOBタスク</label></span>
+						</div>
+					</div>
+
+					<div className="col-xs-6">
+						<div className="sub-section-label">検索条件</div>
+						<div className="input-group">
+							<span className="input-group-addon"><span className="label-container taskSearch">タスク名</span></span>
+							<input type="text" ref="taskName" className="form-control" onChange={this.handleTaskNmChange} />
+						</div>
+						<div className="input-group">
+							<span className="input-group-addon"><span className="label-container taskSearch">JOBコード</span></span>
+							<input type="text" ref="jobCode" className="form-control" disabled style={{width: "8em"}} />
+						</div>
+					</div>
+					<div className="col-xs-3">
+						<button type="submit" className="form-control">{this.props.ajaxObj.getDisplay("タスク候補検索")}</button>
+					</div>
+				</div>
+			</form>
+		);
+	}
+});
+
+var JobInfo = React.createClass({
+	render: function() {
+		return (
+			<div className="jobInfo">
+				<div className="row">
+					<div className="col-xs-3">
+						<div className="input-group">
+							<span className="item-label">JOBコード</span><span className="item-label-value">{this.props.jobinfo.jobCd}</span>
+						</div>
+					</div>
+					<div className="col-xs-2">
+						<div className="input-group">
+							<span className="item-label">改訂番号</span><span className="item-label-value">{this.props.jobinfo.jobRev}</span>
+						</div>
+					</div>
+					<div className="col-xs-7">
+						<div className="input-group">
+							<span className="item-label">JOB名称</span><span className="item-label-value">{this.props.jobinfo.jobNm}</span>
+						</div>
+					</div>
+				</div>
+				<div className="row">
+					<div className="col-xs-5">
+						<div className="input-group">
+							<span className="item-label">過去JOBコード</span><span className="item-label-value">{this.props.jobinfo.basisPastJobCd}</span>
+						</div>
+					</div>
+					<div className="col-xs-7">
+						<div className="input-group">
+							<span className="item-label">過去JOB名称</span><span className="item-label-value">{this.props.jobinfo.basisPastJobNm}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		);
+	}
+});
+
+var ControlPanel = React.createClass({
+
+	handleModificationAffect: function() {
+		this.props.onModificationAffect();
+	},
+
+	render: function() {
+		return (
+			<div>
+				<div className="row ui-separate">
+					<div className="col-xs-offset-9 col-xs-3">
+						<button type="button" className="form-control btn btn-default">JOB詳細に戻る</button>
+					</div>
+				</div>
+				<div className="row">
+					<div className="col-xs-offset-6 col-xs-3">
+						<button type="button" className="form-control btn btn-default">タスク追加</button>
+					</div>
+					<div className="col-xs-3">
+						<button type="button" className="form-control btn btn-primary" onClick={this.handleModificationAffect}>変更内容反映</button>
+					</div>
+				</div>
+			</div>
+		);
+	}
+});
+
+var CandidateTasks = React.createClass({
+	getInitialState: function() {
+		return {tasks: []};
+	},
+
+	render: function() {
+		var candidateTasks = this.state.tasks.map(function(task) {
+			return <CandidateTaskRow task={task} baseType={this.state.baseType} />
+		}.bind(this));
+
+		return (
+			<div>
+			<table id="candidateTasks" className="table es_list expand-table">
+				<thead>
+					<tr>
+						<th className="taskGroup">タスクグループ</th>
+						<th className="taskName">タスク名</th>
+						<th className="planned">実施<br />対象</th>
+						<th className="jobCode">JOBコード</th>
+						<th className="jobName">JOB名称</th>
+					</tr>
+				</thead>
+				<tbody>
+					{candidateTasks}
+				</tbody>
+			</table>
+			</div>
+		);
+	}
+});
+
+var CandidateTaskRow = React.createClass({
+	render: function() {
+		return (
+			<tr>
+				<td className="taskGroup">{this.props.task.taskGrpNm}</td>
+				<td className="taskName">{this.props.task.stdTaskNm}</td>
+				<td className="planned"><input type="checkbox" key={this.props.task.stdTaskCd} defaultChecked={this.props.task.isPlanned} disabled={this.props.baseType == TASK_BASE_TYPES[0]} /></td>
+				<td className="jobCode">{this.props.task.jobCode}</td>
+				<td className="jobName">{this.props.task.jobName}</td>
+			</tr>
+		);
+	}
+});
+
+var TaskTransferForm = React.createClass({
+	getInitialState: function() {
+		return {enabled: true};
+	},
+
+	handleSubmit: function(e) {
+		this.props.onSubmit();
+	},
+
+	render: function() {
+		return (
+			<div className="taskTransfer">
+			<div className="taskTransferPanel expand-block">
+				<button type="button" className="btn btn-primary" disabled={!this.state.enabled} onClick={this.handleSubmit}><span className="arrow">➡</span><br />移動</button>
+			</div>
+			</div>
+		);
+	}
+});
+
+var PlannedTasks = React.createClass({
+	getInitialState: function() {
+		return {tasks: []};
+	},
+
+	render: function() {
+		var plannedTasks = this.state.tasks.map(function(task) {
+			return <PlannedTaskRow task={task} />
+		});
+
+		return (
+				<table id="plannedTasks" className="table es_list expand-table">
+					<thead>
+						<tr>
+							<th className="taskGroup">タスクグループ</th>
+							<th className="taskName">タスク名</th>
+							<th className="workAmt">作成量</th>
+							<th className="toOffer">客先<br />提示</th>
+							<th className="delete">削除</th>
+							<th className="reason">改訂理由</th>
+						</tr>
+					</thead>
+					<tbody>
+						{plannedTasks}
+					</tbody>
+				</table>
+		);
+	}
+});
+
+var PlannedTaskRow = React.createClass({
+	render: function() {
+		return (
+			<tr>
+				<td className="taskGroup">{this.props.task.taskGroup}</td>
+				<td className="taskName">{this.props.task.taskName}</td>
+				<td className="workAmt">
+					<div className="input-group">
+						<input type="text" className="form-control" />
+					</div>
+				</td>
+				<td className="toOffer">
+					<div className="input-group">
+						<input type="checkbox" defaultChecked={this.props.task.isToOffer} />
+					</div>
+				</td>
+				<td className="delete">
+					<div className="input-group">
+						<button type="button" className="form-control" disabled="false">削除</button>
+					</div>
+				</td>
+				<td className="reason">
+					<div className="input-group">
+						<input type="text" className="form-control" value={this.props.task.reason} />
+					</div>
+				</td>
+			</tr>
+		);
+	}
+});
+
+
+
+function init() {
+	React.render(<Main />, $("#main")[0]);
+}
+
+		</script>
+	</head>
+
+	<body onload="init()">
+		<div class="header">
+			<span class="header-item title">実施対象タスク選択画面</span>
+		</div>
+
+		<div id="main" class="vsection-layout">
+		</div>
+
+		<!-- jQuery first, then Tether, then Bootstrap JS. -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<script src="http://fb.me/react-0.13.3.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="http://d3js.org/d3.v3.min.js"></script>
+		<script src="http://fb.me/JSXTransformer-0.13.3.js"></script>
+		<script src="js/es_common.js"></script>
+
+	</body>
+</html>

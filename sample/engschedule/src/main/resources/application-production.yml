@@ -1,0 +1,24 @@
+# 各環境用の設定を記述する。
+# 環境変数やconfファイルなどで、指定された spring.profiles.active（または SPRING_PROFILES_ACTIVE ）をサフィックスとする。
+# ここに書かれた設定で、 application.yml を上書きする。
+# 想定されるものは以下の通り
+#  local : 各自のPC用の設定。
+#  develop : 開発用サーバの設定。
+#  staging : ステージング用サーバの設定。
+#  production : 本番用サーバの設定。
+#
+# logback-spring.xml の springProfile にも同じものがあるので、変更する場合は注意する。
+#
+#spring:
+#  jpa:
+#    database: postgresql
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/practicedb
+#    username: postgres
+#    password: Postgres1234
+#    driverClassName: org.postgresql.Driver
+#    
+## 以降はシステム固有の設定
+#settings:
+#  # エラー時のリダイレクト先。仮の値
+#  errorRedirectTarget: http://localhost:8080/errorpage.html
